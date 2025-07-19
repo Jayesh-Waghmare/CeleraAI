@@ -11,11 +11,11 @@ CeleraAI is a full-stack AI-powered application built with the **PERN stack** (P
 
 ## 🚀 Features
 
-- **Dashboard** – Unified interface to access all tools
+- **Dashboard** – Unified interface to access your history and plan
 - **Write Article** – Generate full-length articles using AI
 - **Blog Titles** – Create SEO-friendly blog title suggestions
 - **Generate Images** – Generate unique AI-based images from prompts
 - **Remove Background** – Automatically remove image backgrounds
-- **Remove Object** – Erase unwanted objects from images using smart fill
+- **Remove Object** – Erase unwanted objects from images
 - **Review Resume** – Upload and review resumes with AI-powered suggestions
-- **Community** – Interact, share, and discuss with other users
+- **Community** – Public images will be displayed here
