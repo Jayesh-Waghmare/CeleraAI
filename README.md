@@ -7,7 +7,7 @@ CeleraAI is a full-stack AI-powered application built with the **PERN stack** (P
 - **Frontend**: [https://celera-ai.vercel.app](https://celera-ai.vercel.app)  
 - **Backend**: [https://celera-ai-server.vercel.app](https://celera-ai-server.vercel.app)
 
-> ⚠️ **Note:** The backend must be running for the application to function properly. It handles all API requests, AI logic, image processing, and data storage.
+⚠️ **Note:** The backend must be running for the application to function properly. It handles all API requests, AI logic, image processing, and data storage.
 
 ## 🚀 Features
 
