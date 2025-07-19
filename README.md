@@ -1,5 +1,4 @@
-# ⚡ CeleraAI – AI-Powered Productivity Platform
-
+# CeleraAI – AI-Powered Productivity Platform
 CeleraAI is a full-stack AI-powered application built with the **PERN stack** (PostgreSQL, Express, React, Node.js), using **Neon** for scalable Postgres hosting. It offers a suite of intelligent tools designed to enhance creativity, productivity, and user experience.
 
 ## 🌐 Live URLs
