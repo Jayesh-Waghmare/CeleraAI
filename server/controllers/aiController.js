@@ -5,6 +5,7 @@ import axios from "axios";
 import {v2 as cloudinary} from 'cloudinary';
 import fs from 'fs'
 import pdf from 'pdf-parse/lib/pdf-parse.js'
+import { Buffer } from 'buffer';
 
 const AI = new OpenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -98,41 +99,91 @@ export const generateBlogTitle = async (req, res) => {
 }
 
 export const generateImage = async (req, res) => {
-    try{
-        const { userId } = req.auth();
-        const { prompt, publish } = req.body;
-        const plan = req.plan;
+  try {
+    const { userId } = req.auth();
+    const { prompt, publish } = req.body;
+    const plan = req.plan;
 
-        if(plan !== 'premium'){
-            return res.json({success: false, message: "This feature is only available for premium subscriptions"})
-        }
-
-        const formData= new FormData()
-        formData.append('prompt', prompt)
-
-        // Get the response from the AI call
-        const {data} = await axios.post("https://clipdrop-api.co/text-to-image/v1", formData, {
-            headers: {'x-api-key': process.env.CLIPDROP_API_KEY},
-            responseType: "arraybuffer"
-        })
-
-        // base64 image
-        const base64Image = `data:image/png;base64,${Buffer.from(data, 'binary').toString('base64')}`;
-
-        // upload in the cloudinary
-        const {secure_url} = await cloudinary.uploader.upload(base64Image)
-        
-        // Store the response in the database
-        await sql` INSERT INTO creations (user_id, prompt, content, type, publish)
-        VALUES(${userId}, ${prompt}, ${secure_url}, 'image', ${publish ?? false})`;
-        
-        res.json({success: true, content: secure_url})
+    if (plan !== 'premium') {
+      return res.json({
+        success: false,
+        message: 'This feature is only available for premium subscriptions',
+      });
     }
-    catch(error){
-        console.log(error.message)
-        res.json({success: false, message: error.message})
-    }
-}
+
+    const HF_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0';
+
+    // Generate the response
+    const response = await axios({
+      method: 'POST',
+      url: HF_URL,
+      headers: {
+        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        'Content-Type': 'application/json',
+        Accept: 'image/png',
+      },
+      data: JSON.stringify({
+        inputs: prompt,
+      }),
+      responseType: 'arraybuffer',
+    });
+
+    // base64 image
+    const base64Image = `data:image/png;base64,${Buffer.from(response.data).toString('base64')}`;
+
+    // upload it in the cloudinary
+    const { secure_url } = await cloudinary.uploader.upload(base64Image);
+
+    // store it in the database
+    await sql`
+      INSERT INTO creations (user_id, prompt, content, type, publish)
+      VALUES (${userId}, ${prompt}, ${secure_url}, 'image', ${publish ?? false})
+    `;
+
+    res.json({ success: true, content: secure_url });
+  } catch (error) {
+    const errMsg = error.response?.data || error.message;
+    console.error('Image Generation Error:', errMsg);
+    res.json({ success: false, message: 'Image generation failed: ' + errMsg });
+  }
+};
+
+// export const generateImage = async (req, res) => {
+//     try{
+//         const { userId } = req.auth();
+//         const { prompt, publish } = req.body;
+//         const plan = req.plan;
+
+//         if(plan !== 'premium'){
+//             return res.json({success: false, message: "This feature is only available for premium subscriptions"})
+//         }
+
+//         const formData= new FormData()
+//         formData.append('prompt', prompt)
+
+//         // Get the response from the AI call
+//         const {data} = await axios.post("https://clipdrop-api.co/text-to-image/v1", formData, {
+//             headers: {'x-api-key': process.env.CLIPDROP_API_KEY},
+//             responseType: "arraybuffer"
+//         })
+
+//         // base64 image
+//         const base64Image = `data:image/png;base64,${Buffer.from(data, 'binary').toString('base64')}`;
+
+//         // upload in the cloudinary
+//         const {secure_url} = await cloudinary.uploader.upload(base64Image)
+        
+//         // Store the response in the database
+//         await sql` INSERT INTO creations (user_id, prompt, content, type, publish)
+//         VALUES(${userId}, ${prompt}, ${secure_url}, 'image', ${publish ?? false})`;
+        
+//         res.json({success: true, content: secure_url})
+//     }
+//     catch(error){
+//         console.log(error.message)
+//         res.json({success: false, message: error.message})
+//     }
+// }
 
 export const removeImageBackground = async (req, res) => {
     try{
